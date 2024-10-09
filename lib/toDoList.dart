@@ -39,6 +39,39 @@ class ToDoListScreenState extends State<ToDoListScreen> {
     });
   }
 
+  void _editTask(int index) {
+    final TextEditingController editController = TextEditingController(text: widget.todoList.tasks[index].title);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Task'),
+          content: TextField(
+            controller: editController,
+            decoration: const InputDecoration(hintText: 'Enter new task title'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  widget.todoList.tasks[index].title = editController.text.trim();
+                  widget.todoList.save();
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showAddTaskDialog(BuildContext context) {
     final TextEditingController taskController = TextEditingController();
 
@@ -100,12 +133,27 @@ class ToDoListScreenState extends State<ToDoListScreen> {
                 return Dismissible(
                   key: ValueKey(task),
                   background: Container(
+                    color: Colors.blue,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.edit, color: Colors.white),
+                  ),
+                  secondaryBackground: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
-                  onDismissed: (_) => _deleteTask(index),
+                  confirmDismiss: (direction) async {
+                    if (direction == DismissDirection.startToEnd) {
+                      _editTask(index);
+                      return false; // Prevent dismissal for edit action
+                    } else if (direction == DismissDirection.endToStart) {
+                      _deleteTask(index);
+                      return true; // Allow dismissal for delete action
+                    }
+                    return false;
+                  },
                   child: ListTile(
                     leading: Checkbox(
                       value: task.isCompleted,

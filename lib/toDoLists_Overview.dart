@@ -60,6 +60,66 @@ class ToDoListsOverviewState extends State<ToDoListsOverview> {
     );
   }
 
+  void _editSelected() {
+    final selectedIndices = selectedItems.asMap().entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+
+    if (selectedIndices.isNotEmpty) {
+      List<TextEditingController> controllers = selectedIndices
+          .map((index) => TextEditingController(text: widget.toDoListsModel.todoLists[index].title))
+          .toList();
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Edit Selected ToDo List Titles'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: List.generate(controllers.length, (i) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: TextField(
+                      controller: controllers[i],
+                      decoration: InputDecoration(
+                        labelText: 'New title for ${widget.toDoListsModel.todoLists[selectedIndices[i]].title}',
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    for (int i = 0; i < selectedIndices.length; i++) {
+                      int index = selectedIndices[i];
+                      widget.toDoListsModel.todoLists[index].title = controllers[i].text.trim();
+                      widget.toDoListsModel.todoLists[index].save();
+                    }
+                    selectedItems = List.generate(widget.toDoListsModel.todoLists.length, (index) => false);
+                    isSelecting = false;
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   void _toggleSelectionMode() {
     setState(() {
       isSelecting = !isSelecting;
@@ -170,13 +230,26 @@ class ToDoListsOverviewState extends State<ToDoListsOverview> {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: FloatingActionButton(
+                onPressed: _editSelected,
+                backgroundColor: Colors.blue,
+                heroTag: 'editButton',
+                tooltip: 'Edit selected lists',
+                child: const Icon(Icons.edit),
+              ),
+            ),
+          if (isSelecting)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: FloatingActionButton(
                 onPressed: _deleteSelected,
                 backgroundColor: Colors.red,
+                heroTag: 'deleteButton',
                 child: const Icon(Icons.delete),
               ),
             ),
           FloatingActionButton(
             onPressed: () => _showAddToDoListDialog(context),
+            heroTag: 'addButton',
             child: const Icon(Icons.add),
           ),
         ],
