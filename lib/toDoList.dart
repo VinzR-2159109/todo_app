@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/model.dart';
+import 'model.dart';
 
 class ToDoListScreen extends StatefulWidget {
   final ToDoList todoList;
@@ -14,24 +14,28 @@ class ToDoListScreenState extends State<ToDoListScreen> {
   void _addTask(String title) {
     setState(() {
       widget.todoList.tasks.add(Task(title: title));
+      widget.todoList.save();
     });
   }
 
   void _toggleTaskCompletion(int index) {
     setState(() {
       widget.todoList.tasks[index].isCompleted = !widget.todoList.tasks[index].isCompleted;
+      widget.todoList.save();
     });
   }
 
   void _deleteTask(int index) {
     setState(() {
       widget.todoList.tasks.removeAt(index);
+      widget.todoList.save();
     });
   }
 
   void _deleteCompletedTasks() {
     setState(() {
       widget.todoList.tasks.removeWhere((task) => task.isCompleted);
+      widget.todoList.save();
     });
   }
 
@@ -88,6 +92,7 @@ class ToDoListScreenState extends State<ToDoListScreen> {
                   if (newIndex > oldIndex) newIndex--;
                   final task = widget.todoList.tasks.removeAt(oldIndex);
                   widget.todoList.tasks.insert(newIndex, task);
+                  widget.todoList.save();
                 });
               },
               itemBuilder: (context, index) {
@@ -127,12 +132,14 @@ class ToDoListScreenState extends State<ToDoListScreen> {
               child: FloatingActionButton(
                 onPressed: _deleteCompletedTasks,
                 backgroundColor: Colors.red,
+                heroTag: 'deleteTasksButton', // Unique hero tag
                 tooltip: 'Delete completed tasks',
                 child: const Icon(Icons.delete),
               ),
             ),
           FloatingActionButton(
             onPressed: () => _showAddTaskDialog(context),
+            heroTag: 'addTaskButton', // Unique hero tag
             child: const Icon(Icons.add),
           ),
         ],

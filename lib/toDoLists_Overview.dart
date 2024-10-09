@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'toDoList.dart';
 import 'model.dart';
+import 'package:hive/hive.dart';
 
 class ToDoListsOverview extends StatefulWidget {
   final ToDoListsModel toDoListsModel = ToDoListsModel();
@@ -14,10 +15,12 @@ class ToDoListsOverview extends StatefulWidget {
 class ToDoListsOverviewState extends State<ToDoListsOverview> {
   List<bool> selectedItems = [];
   bool isSelecting = false;
+  late Box<ToDoList> todoBox;
 
   @override
   void initState() {
     super.initState();
+    todoBox = Hive.box<ToDoList>('todoBox');
     selectedItems = List.generate(widget.toDoListsModel.todoLists.length, (index) => false);
   }
 
